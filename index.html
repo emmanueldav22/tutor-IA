@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutor Académico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9edf3;
+    --panel: #fbfcfe;
+    --ink: #1b2433;
+    --muted: #5b6678;
+    --line: #d5dce8;
+    --margin: #e7a6a6;
+    --accent: #14564f;
+    --accent-ink: #ffffff;
+    --user: #1b2433;
+    --user-ink: #f3f6fb;
+    --error-bg: #fdecec;
+    --error-ink: #8a1f1f;
+    --ui: "Figtree", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11161f;
+      --panel: #181f2b;
+      --ink: #e6ebf3;
+      --muted: #97a3b7;
+      --line: #2a3445;
+      --margin: #6b3a3f;
+      --accent: #5cc4b6;
+      --accent-ink: #0d1f1c;
+      --user: #2c3a52;
+      --user-ink: #eef2f9;
+      --error-bg: #3a1d20;
+      --error-ink: #f3b4b4;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--ui);
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .app {
+    width: 100%;
+    max-width: 720px;
+    height: calc(100vh - 48px);
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header p { margin: 2px 0 0; font-size: .85rem; color: var(--muted); }
+  .ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px 12px;
+    font: 500 .85rem var(--ui);
+    cursor: pointer;
+  }
+  .ghost:hover { color: var(--ink); border-color: var(--muted); }
+
+  /* Hoja de cuaderno: líneas y margen */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 20px 20px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    background-image:
+      linear-gradient(to right, transparent 39px, var(--margin) 39px, var(--margin) 40px, transparent 40px),
+      repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--line) 31px, var(--line) 32px);
+    background-attachment: local;
+  }
+  .msg {
+    max-width: 88%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .msg.bot {
+    align-self: flex-start;
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--user);
+    color: var(--user-ink);
+    font-size: .98rem;
+  }
+  .msg.error {
+    align-self: flex-start;
+    background: var(--error-bg);
+    color: var(--error-ink);
+    font-size: .92rem;
+  }
+  .empty {
+    margin: auto 0;
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 30ch;
+  }
+  .typing { display: inline-flex; gap: 4px; align-items: center; height: 1.4em; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: .15s; }
+  .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+  form {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px;
+    border-top: 1px solid var(--line);
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    max-height: 140px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--ink);
+    font: 400 1rem var(--ui);
+    line-height: 1.4;
+  }
+  textarea::placeholder { color: var(--muted); }
+  button.send {
+    padding: 0 20px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font: 600 .95rem var(--ui);
+    cursor: pointer;
+  }
+  button.send:disabled { opacity: .5; cursor: not-allowed; }
+  textarea:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  @media (max-width: 520px) {
+    body { padding: 0; }
+    .app { height: 100vh; border-radius: 0; border-left: 0; border-right: 0; }
+    #chat { padding-left: 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .typing span { animation: none; opacity: .6; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <h1>Tutor Académico</h1>
+      <p>Pregunta sobre cualquier tema de estudio.</p>
+    </div>
+    <button type="button" class="ghost" id="nuevo">Nueva conversación</button>
+  </header>
+
+  <div id="chat" role="log" aria-live="polite"></div>
+
+  <form id="form" autocomplete="off">
+    <textarea id="input" rows="1" placeholder="Escribe tu pregunta…" aria-label="Tu pregunta"></textarea>
+    <button type="submit" class="send" id="enviar">Enviar</button>
+  </form>
+</main>
+
+<script>
+  // ====== CONFIGURACIÓN ======
+  // Producción (workflow activo):   .../webhook/<id>
+  // Pruebas (Listen for test event): .../webhook-test/<id>
+  const WEBHOOK_URL = "https://emmanueldav.app.n8n.cloud/webhook/470fec46-a648-441e-bb6c-3e2e135541c8";
+  const TIMEOUT_MS = 60000;
+  // ===========================
+
+  const chat = document.getElementById("chat");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const enviar = document.getElementById("enviar");
+  const nuevo = document.getElementById("nuevo");
+
+  function nuevoId() {
+    return "session_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+  let sessionId = nuevoId();
+  try {
+    sessionId = localStorage.getItem("tutor_session") || sessionId;
+    localStorage.setItem("tutor_session", sessionId);
+  } catch (e) { /* sin almacenamiento: se usa un id temporal */ }
+
+  function mostrarVacio() {
+    chat.innerHTML = "";
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.id = "vacio";
+    p.textContent = "Escribe una pregunta para empezar la clase.";
+    chat.appendChild(p);
+  }
+
+  function agregar(texto, tipo) {
+    const vacio = document.getElementById("vacio");
+    if (vacio) vacio.remove();
+    const div = document.createElement("div");
+    div.className = "msg " + tipo;
+    div.textContent = texto;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  function agregarEscribiendo() {
+    const div = agregar("", "bot");
+    div.innerHTML = '<span class="typing" aria-label="El tutor está escribiendo"><span></span><span></span><span></span></span>';
+    return div;
+  }
+
+  function extraerRespuesta(texto) {
+    let data;
+    try { data = JSON.parse(texto); } catch (e) { return texto.trim(); }
+    if (Array.isArray(data)) data = data[0];
+    if (typeof data === "string") return data;
+    if (data && typeof data === "object") {
+      const campo = data.output ?? data.text ?? data.response ?? data.message;
+      if (typeof campo === "string") return campo;
+      return JSON.stringify(data, null, 2);
+    }
+    return String(data);
+  }
+
+  function describirError(error, status) {
+    if (error && error.name === "AbortError") {
+      return "El tutor tardó demasiado en responder. Intenta de nuevo.";
+    }
+    if (status === 404) {
+      return "El webhook no existe o el workflow no está activo. Activa el workflow en n8n o revisa la URL.";
+    }
+    if (status) {
+      return "n8n respondió con el error " + status + ". Revisa la ejecución en la pestaña Executions.";
+    }
+    return "No se pudo conectar con n8n. Revisa tu conexión, la URL del webhook y que CORS (Allowed Origins) esté configurado.";
+  }
+
+  async function enviarMensaje(texto) {
+    agregar(texto, "user");
+    enviar.disabled = true;
+    const escribiendo = agregarEscribiendo();
+
+    const controlador = new AbortController();
+    const temporizador = setTimeout(() => controlador.abort(), TIMEOUT_MS);
+    let status = null;
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatInput: texto, sessionId }),
+        signal: controlador.signal
+      });
+      status = res.status;
+      const cuerpo = await res.text();
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const respuesta = extraerRespuesta(cuerpo);
+      escribiendo.remove();
+      agregar(respuesta || "El tutor no devolvió ninguna respuesta.", "bot");
+    } catch (error) {
+      console.error("Error al llamar al webhook:", error);
+      escribiendo.remove();
+      agregar(describirError(error, status), "error");
+    } finally {
+      clearTimeout(temporizador);
+      enviar.disabled = false;
+      input.focus();
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const texto = input.value.trim();
+    if (!texto || enviar.disabled) return;
+    input.value = "";
+    input.style.height = "auto";
+    enviarMensaje(texto);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  });
+
+  nuevo.addEventListener("click", () => {
+    sessionId = nuevoId();
+    try { localStorage.setItem("tutor_session", sessionId); } catch (e) {}
+    mostrarVacio();
+    input.focus();
+  });
+
+  mostrarVacio();
+  input.focus();
+</script>
+</body>
+</html>
